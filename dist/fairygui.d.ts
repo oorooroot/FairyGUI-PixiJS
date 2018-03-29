@@ -1,3 +1,5 @@
+/// <reference types="pixi.js" />
+/// <reference types="tweenjs" />
 declare namespace fgui {
     class InteractiveEvents {
         static Down: string;

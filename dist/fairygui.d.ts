@@ -1,6 +1,11 @@
 /// <reference types="pixi.js" />
 /// <reference types="tweenjs" />
 declare namespace fgui {
+}
+declare module 'fairygui-pixijs' {
+    export = fgui;
+}
+declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
         static Cancel: string;

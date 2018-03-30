@@ -2,7 +2,7 @@
 
 namespace fgui {
 
-    export class UITextField extends PIXI.extras.Text implements IUIObject {
+    export class UITextField extends PixiText implements IUIObject {
 
         public UIOwner:GObject;
 

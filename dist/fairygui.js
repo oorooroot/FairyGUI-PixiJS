@@ -14191,127 +14191,136 @@ var fgui;
     });
 })(fgui || (fgui = {}));
 /*this class is temporarily for the bug fixing purpose only, so once PIXI releases a new version, this class will be removed */
-var PIXI;
-(function (PIXI) {
-    var extras;
-    (function (extras) {
-        var Text = /** @class */ (function (_super) {
-            __extends(Text, _super);
-            function Text(text, style, canvas) {
-                var _this = _super.call(this, text, style, canvas) || this;
-                if (!PIXI.extras.Text.__init) {
-                    PIXI.extras.Text.__init = true;
-                    //override
-                    PIXI.TextMetrics.wordWrap = function (text, style, canvas) {
-                        if (!canvas)
-                            canvas = PIXI.TextMetrics["_canvas"];
-                        var context = canvas.getContext('2d');
-                        // Greedy wrapping algorithm that will wrap words as the line grows longer
-                        // than its horizontal bounds.
-                        var result = '';
-                        var firstChar = text.charAt(0);
-                        var lines = text.split('\n');
-                        var wordWrapWidth = style.wordWrapWidth;
-                        var characterCache = {};
-                        for (var i = 0; i < lines.length; i++) {
-                            var spaceLeft = wordWrapWidth;
-                            var words = lines[i].split(' ');
-                            for (var j = 0; j < words.length; j++) {
-                                var wordWidth = context.measureText(words[j]).width;
-                                if (style.breakWords && wordWidth > wordWrapWidth) {
-                                    // Word should be split in the middle
-                                    var characters = words[j].split('');
-                                    for (var c = 0; c < characters.length; c++) {
-                                        var character = characters[c];
-                                        var nextChar = characters[c + 1];
-                                        var isEmoji = Text.isEmojiChar(character.charCodeAt(0), nextChar ? nextChar.charCodeAt(0) : 0);
-                                        if (isEmoji > 1) {
-                                            c++;
-                                            character += nextChar; //combine into 1 emoji
-                                        }
-                                        var characterWidth = characterCache[character];
-                                        if (characterWidth === undefined) {
-                                            characterWidth = context.measureText(character).width;
-                                            characterCache[character] = characterWidth;
-                                        }
-                                        if (characterWidth > spaceLeft) {
-                                            result += "\n" + character;
-                                            spaceLeft = wordWrapWidth - characterWidth;
-                                        }
-                                        else {
-                                            if (c === 0 && (j > 0 || firstChar == ' ')) {
-                                                result += ' ';
-                                            }
-                                            result += character;
-                                            spaceLeft -= characterWidth;
-                                        }
+var fgui;
+(function (fgui) {
+    var PixiText = /** @class */ (function (_super) {
+        __extends(PixiText, _super);
+        function PixiText(text, style, canvas) {
+            var _this = _super.call(this, text, style, canvas) || this;
+            if (!PixiText.__init) {
+                PixiText.__init = true;
+                //override
+                PIXI.TextMetrics.wordWrap = function (text, style, canvas) {
+                    if (!canvas)
+                        canvas = PIXI.TextMetrics["_canvas"];
+                    var context = canvas.getContext("2d");
+                    // Greedy wrapping algorithm that will wrap words as the line grows longer
+                    // than its horizontal bounds.
+                    var result = "";
+                    var firstChar = text.charAt(0);
+                    var lines = text.split("\n");
+                    var wordWrapWidth = style.wordWrapWidth;
+                    var characterCache = {};
+                    for (var i = 0; i < lines.length; i++) {
+                        var spaceLeft = wordWrapWidth;
+                        var words = lines[i].split(" ");
+                        for (var j = 0; j < words.length; j++) {
+                            var wordWidth = context.measureText(words[j]).width;
+                            if (style.breakWords && wordWidth > wordWrapWidth) {
+                                // Word should be split in the middle
+                                var characters = words[j].split("");
+                                for (var c = 0; c < characters.length; c++) {
+                                    var character = characters[c];
+                                    var nextChar = characters[c + 1];
+                                    var isEmoji = PixiText.isEmojiChar(character.charCodeAt(0), nextChar ? nextChar.charCodeAt(0) : 0);
+                                    if (isEmoji > 1) {
+                                        c++;
+                                        character += nextChar; //combine into 1 emoji
                                     }
-                                }
-                                else {
-                                    var wordWidthWithSpace = wordWidth + context.measureText(' ').width;
-                                    if (j === 0 || wordWidthWithSpace > spaceLeft) {
-                                        // Skip printing the newline if it's the first word of the line that is
-                                        // greater than the word wrap width.
-                                        if (j > 0) {
-                                            result += '\n';
-                                        }
-                                        result += words[j];
-                                        spaceLeft = wordWrapWidth - wordWidth;
+                                    var characterWidth = characterCache[character];
+                                    if (characterWidth === undefined) {
+                                        characterWidth = context.measureText(character).width;
+                                        characterCache[character] = characterWidth;
+                                    }
+                                    if (characterWidth > spaceLeft) {
+                                        result += "\n" + character;
+                                        spaceLeft = wordWrapWidth - characterWidth;
                                     }
                                     else {
-                                        spaceLeft -= wordWidthWithSpace;
-                                        result += " " + words[j];
+                                        if (c === 0 && (j > 0 || firstChar == " ")) {
+                                            result += " ";
+                                        }
+                                        result += character;
+                                        spaceLeft -= characterWidth;
                                     }
                                 }
                             }
-                            if (i < lines.length - 1) {
-                                result += '\n';
+                            else {
+                                var wordWidthWithSpace = wordWidth + context.measureText(" ").width;
+                                if (j === 0 || wordWidthWithSpace > spaceLeft) {
+                                    // Skip printing the newline if it's the first word of the line that is
+                                    // greater than the word wrap width.
+                                    if (j > 0) {
+                                        result += "\n";
+                                    }
+                                    result += words[j];
+                                    spaceLeft = wordWrapWidth - wordWidth;
+                                }
+                                else {
+                                    spaceLeft -= wordWidthWithSpace;
+                                    result += " " + words[j];
+                                }
                             }
                         }
-                        return result;
-                    };
-                }
-                return _this;
-            }
-            /**
-             * Check whether a byte is an emoji character or not.
-             *
-             * @param {number} charCode - the byte to test.
-             * @param {number} nextCharCode - the possible second byte of the emoji.
-             * @return {number} 0 means not a emoji, 1 means single byte, 2 means double bytes.
-             */
-            Text.isEmojiChar = function (charCode, nextCharCode) {
-                var hs = charCode;
-                var nextCharValid = typeof nextCharCode === 'number' && !isNaN(nextCharCode) && nextCharCode > 0;
-                // surrogate pair
-                if (hs >= 0xd800 && hs <= 0xdbff) {
-                    if (nextCharValid) {
-                        var uc = ((hs - 0xd800) * 0x400) + (nextCharCode - 0xdc00) + 0x10000;
-                        if (uc >= 0x1d000 && uc <= 0x1f77f) {
-                            return 2;
+                        if (i < lines.length - 1) {
+                            result += "\n";
                         }
                     }
+                    return result;
+                };
+            }
+            return _this;
+        }
+        /**
+         * Check whether a byte is an emoji character or not.
+         *
+         * @param {number} charCode - the byte to test.
+         * @param {number} nextCharCode - the possible second byte of the emoji.
+         * @return {number} 0 means not a emoji, 1 means single byte, 2 means double bytes.
+         */
+        PixiText.isEmojiChar = function (charCode, nextCharCode) {
+            var hs = charCode;
+            var nextCharValid = typeof nextCharCode === "number" &&
+                !isNaN(nextCharCode) &&
+                nextCharCode > 0;
+            // surrogate pair
+            if (hs >= 0xd800 && hs <= 0xdbff) {
+                if (nextCharValid) {
+                    var uc = (hs - 0xd800) * 0x400 + (nextCharCode - 0xdc00) + 0x10000;
+                    if (uc >= 0x1d000 && uc <= 0x1f77f) {
+                        return 2;
+                    }
                 }
-                else if ((hs >= 0x2100 && hs <= 0x27ff)
-                    || (hs >= 0x2B05 && hs <= 0x2b07)
-                    || (hs >= 0x2934 && hs <= 0x2935)
-                    || (hs >= 0x3297 && hs <= 0x3299)
-                    || hs === 0xa9 || hs === 0xae || hs === 0x303d || hs === 0x3030
-                    || hs === 0x2b55 || hs === 0x2b1c || hs === 0x2b1b
-                    || hs === 0x2b50 || hs === 0x231a) {
-                    return 1;
-                }
-                else if (nextCharValid && (nextCharCode === 0x20e3 || nextCharCode === 0xfe0f || nextCharCode === 0xd83c)) {
-                    return 2;
-                }
-                return 0;
-            };
-            Text.__init = false;
-            return Text;
-        }(PIXI.Text));
-        extras.Text = Text;
-    })(extras = PIXI.extras || (PIXI.extras = {}));
-})(PIXI || (PIXI = {}));
+            }
+            else if ((hs >= 0x2100 && hs <= 0x27ff) ||
+                (hs >= 0x2b05 && hs <= 0x2b07) ||
+                (hs >= 0x2934 && hs <= 0x2935) ||
+                (hs >= 0x3297 && hs <= 0x3299) ||
+                hs === 0xa9 ||
+                hs === 0xae ||
+                hs === 0x303d ||
+                hs === 0x3030 ||
+                hs === 0x2b55 ||
+                hs === 0x2b1c ||
+                hs === 0x2b1b ||
+                hs === 0x2b50 ||
+                hs === 0x231a) {
+                // non surrogate
+                return 1;
+            }
+            else if (nextCharValid &&
+                (nextCharCode === 0x20e3 ||
+                    nextCharCode === 0xfe0f ||
+                    nextCharCode === 0xd83c)) {
+                return 2;
+            }
+            return 0;
+        };
+        PixiText.__init = false;
+        return PixiText;
+    }(PIXI.Text));
+    fgui.PixiText = PixiText;
+})(fgui || (fgui = {}));
 ///<reference path="../PIXI/extras/Text.ts" />
 var fgui;
 (function (fgui) {
@@ -14415,60 +14424,60 @@ var fgui;
             configurable: true
         });
         return UITextField;
-    }(PIXI.extras.Text));
+    }(fgui.PixiText));
     fgui.UITextField = UITextField;
 })(fgui || (fgui = {}));
-var PIXI;
-(function (PIXI) {
-    var extras;
-    (function (extras) {
-        var InteractionManager = /** @class */ (function (_super) {
-            __extends(InteractionManager, _super);
-            function InteractionManager(renderer, options) {
-                var _this = _super.call(this, renderer, options) || this;
-                _this.stageRotation = 0;
-                _this.stageScaleX = 1;
-                _this.stageScaleY = 1;
-                return _this;
+var fgui;
+(function (fgui) {
+    var PixiInteractionManager = /** @class */ (function (_super) {
+        __extends(PixiInteractionManager, _super);
+        function PixiInteractionManager(renderer, options) {
+            var _this = _super.call(this, renderer, options) || this;
+            _this.stageRotation = 0;
+            _this.stageScaleX = 1;
+            _this.stageScaleY = 1;
+            return _this;
+        }
+        PixiInteractionManager.prototype.mapPositionToPoint = function (point, x, y) {
+            var rect = void 0;
+            var dom = this.interactionDOMElement;
+            // IE 11 fix
+            if (!dom.parentElement) {
+                rect = { x: 0, y: 0, width: 0, height: 0 };
             }
-            InteractionManager.prototype.mapPositionToPoint = function (point, x, y) {
-                var rect = void 0;
-                var dom = this.interactionDOMElement;
-                // IE 11 fix
-                if (!dom.parentElement) {
-                    rect = { x: 0, y: 0, width: 0, height: 0 };
-                }
-                else {
-                    rect = dom.getBoundingClientRect();
-                }
-                var nav = navigator;
-                var resolutionMultiplier = nav.isCocoonJS ? this.resolution : 1.0 / this.resolution;
-                var doc = document.documentElement;
-                var left = rect.left + window.pageXOffset - doc.clientLeft;
-                var top = rect.top + window.pageYOffset - doc.clientTop;
-                x -= left;
-                y -= top;
-                var newx = x, newy = y;
-                if (this.stageRotation == 90) {
-                    newx = y;
-                    newy = rect.width - x;
-                }
-                else if (this.stageRotation == -90) {
-                    newx = rect.height - y;
-                    newy = x;
-                }
-                newx = newx * this.stageScaleX * resolutionMultiplier;
-                newy = newy * this.stageScaleY * resolutionMultiplier;
-                point.set(newx, newy);
-            };
-            return InteractionManager;
-        }(PIXI.interaction.InteractionManager));
-        extras.InteractionManager = InteractionManager;
-        //override
-        PIXI.CanvasRenderer.registerPlugin("interaction", PIXI.extras.InteractionManager);
-        PIXI.WebGLRenderer.registerPlugin("interaction", PIXI.extras.InteractionManager);
-    })(extras = PIXI.extras || (PIXI.extras = {}));
-})(PIXI || (PIXI = {}));
+            else {
+                rect = dom.getBoundingClientRect();
+            }
+            var nav = navigator;
+            var resolutionMultiplier = nav.isCocoonJS
+                ? this.resolution
+                : 1.0 / this.resolution;
+            var doc = document.documentElement;
+            var left = rect.left + window.pageXOffset - doc.clientLeft;
+            var top = rect.top + window.pageYOffset - doc.clientTop;
+            x -= left;
+            y -= top;
+            var newx = x, newy = y;
+            if (this.stageRotation == 90) {
+                newx = y;
+                newy = rect.width - x;
+            }
+            else if (this.stageRotation == -90) {
+                newx = rect.height - y;
+                newy = x;
+            }
+            newx = newx * this.stageScaleX * resolutionMultiplier;
+            newy = newy * this.stageScaleY * resolutionMultiplier;
+            point.set(newx, newy);
+        };
+        return PixiInteractionManager;
+    }(PIXI.interaction
+        .InteractionManager));
+    fgui.PixiInteractionManager = PixiInteractionManager;
+    //override
+    PIXI.CanvasRenderer.registerPlugin("interaction", PixiInteractionManager);
+    PIXI.WebGLRenderer.registerPlugin("interaction", PixiInteractionManager);
+})(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
     var DisplayListItem = /** @class */ (function () {

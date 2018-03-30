@@ -1,11 +1,6 @@
 /// <reference types="pixi.js" />
 /// <reference types="tweenjs" />
 declare namespace fgui {
-}
-declare module 'fairygui-pixijs' {
-    export = fgui;
-}
-declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
         static Cancel: string;
@@ -2076,8 +2071,8 @@ declare namespace fgui {
         dispose(): void;
     }
 }
-declare namespace PIXI.extras {
-    class Text extends PIXI.Text {
+declare namespace fgui {
+    class PixiText extends PIXI.Text {
         private static __init;
         /**
          * Check whether a byte is an emoji character or not.
@@ -2091,7 +2086,7 @@ declare namespace PIXI.extras {
     }
 }
 declare namespace fgui {
-    class UITextField extends PIXI.extras.Text implements IUIObject {
+    class UITextField extends PixiText implements IUIObject {
         UIOwner: GObject;
         protected $minHeight: number;
         protected $minHeightID: number;
@@ -2158,12 +2153,12 @@ declare namespace fgui {
         FocusOut = "__textFocusOut",
     }
 }
-declare namespace PIXI.extras {
-    class InteractionManager extends PIXI.interaction.InteractionManager {
+declare namespace fgui {
+    class PixiInteractionManager extends PIXI.interaction.InteractionManager {
         stageRotation: number;
         stageScaleX: number;
         stageScaleY: number;
-        constructor(renderer: CanvasRenderer | WebGLRenderer | SystemRenderer, options?: PIXI.interaction.InteractionManagerOptions);
+        constructor(renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer | PIXI.SystemRenderer, options?: PIXI.interaction.InteractionManagerOptions);
         mapPositionToPoint(point: PIXI.Point, x: number, y: number): void;
     }
 }
